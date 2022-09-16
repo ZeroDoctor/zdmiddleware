@@ -76,9 +76,8 @@ func Logrus(logger *logrus.Logger) gin.HandlerFunc {
 				statusCodeStr = statusOKStyle.Render(statusCodeStr)
 			}
 
-			lg(fmt.Sprintf("%s - %s [%s %s] %s %d [%s] \"%s\" (%dms)",
-				clientIP, hostname, ctx.Request.Method, path,
-				statusCodeStr, dataLength, referer, clientUserAgent, latency,
+			lg(fmt.Sprintf("[%s %s] %s \"%s\" (%dms)",
+				ctx.Request.Method, path, statusCodeStr, clientUserAgent, latency,
 			))
 		}
 	}
