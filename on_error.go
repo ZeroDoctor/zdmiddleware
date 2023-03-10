@@ -14,7 +14,7 @@ func DumpRequestOnError() gin.HandlerFunc {
 		if ctx.Writer.Status() < 200 || ctx.Writer.Status() > 299 {
 			data, err := httputil.DumpRequest(req, true)
 			if err != nil {
-				fmt.Printf("[%s] failed to dump request [error=%s]", statusErrStyle.Render("ERROR"), err.Error())
+				fmt.Printf("[%s] failed to dump request [error=%s]", red.Render("ERROR"), err.Error())
 				return
 			}
 
@@ -28,7 +28,7 @@ func DumpRequest() gin.HandlerFunc {
 		req := ctx.Request
 		data, err := httputil.DumpRequest(req, true)
 		if err != nil {
-			fmt.Printf("[%s] failed to dump request [error=%s]", statusErrStyle.Render("ERROR"), err.Error())
+			fmt.Printf("[%s] failed to dump request [error=%s]", red.Render("ERROR"), err.Error())
 			return
 		}
 

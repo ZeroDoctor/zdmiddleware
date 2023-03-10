@@ -8,24 +8,38 @@ import (
 	"golang.org/x/time/rate"
 )
 
-var limiterCache = cache.New(5*time.Minute, 10*time.Minute)
+type GinRateLimiter struct {
+	KeyFunc       func(*gin.Context) string
+	CreateLimiter func() (*rate.Limiter, time.Duration)
+	Abort         func(*gin.Context)
 
-func NewRateLimiter(key func(*gin.Context) string, createLimiter func() (*rate.Limiter, time.Duration), abort func(*gin.Context)) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		k := key(c)
+	defaultExpiration time.Duration
+	cleanupExpiration time.Duration
 
-		limiter, ok := limiterCache.Get(k)
-		if !ok {
-			limiter, expire := createLimiter()
-			limiterCache.Set(k, limiter, expire)
-		}
-		gin.Logger()
+	limiterCache *cache.Cache
+}
 
-		if ok = limiter.(*rate.Limiter).Allow(); !ok {
-			abort(c)
-			return
-		}
-
-		c.Next()
+func NewReateLimiter(defaultExpiration time.Duration, cleanupExpiration time.Duration) *GinRateLimiter {
+	return &GinRateLimiter{
+		defaultExpiration: defaultExpiration,
+		cleanupExpiration: cleanupExpiration,
+		limiterCache:      cache.New(defaultExpiration, cleanupExpiration),
 	}
+}
+
+func (g *GinRateLimiter) Limiter(c *gin.Context) {
+	key := g.KeyFunc(c)
+
+	limiter, ok := g.limiterCache.Get(key)
+	if !ok {
+		limiter, expire := g.CreateLimiter()
+		g.limiterCache.Set(key, limiter, expire)
+	}
+
+	if ok = limiter.(*rate.Limiter).Allow(); !ok {
+		g.Abort(c)
+		return
+	}
+
+	c.Next()
 }
