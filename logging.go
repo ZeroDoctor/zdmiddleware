@@ -129,9 +129,12 @@ func GinLogrus(logger *logrus.Logger) gin.HandlerFunc {
 
 			method := methodColor(ctx.Request.Method)
 			status := statusCodeColor(statusCode)
+			if raw != "" {
+				raw = "?" + raw
+			}
 
-			logger.Printf("%s [%s?] %s \"%s\" (%dms)",
-				method, path, raw, status, clientUserAgent, latency,
+			logger.Printf("%s [%s%s] %s %s (%dms)",
+				method, path, raw, status, clientIP, latency,
 			)
 
 		}
