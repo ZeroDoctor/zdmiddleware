@@ -140,3 +140,40 @@ func GinLogrus(logger *logrus.Logger) gin.HandlerFunc {
 		}
 	}
 }
+
+type LogrusHook struct {
+	levels []logrus.Level
+	hooks  []func(*logrus.Entry) error
+}
+
+func NewLogrusHook(levels ...logrus.Level) *LogrusHook {
+	if len(levels) == 0 {
+		levels = []logrus.Level{
+			logrus.TraceLevel,
+			logrus.DebugLevel,
+			logrus.InfoLevel,
+			logrus.WarnLevel,
+			logrus.ErrorLevel,
+			logrus.FatalLevel,
+			logrus.PanicLevel,
+		}
+	}
+
+	return &LogrusHook{
+		levels: levels,
+	}
+}
+
+func (h *LogrusHook) Fire(entry *logrus.Entry) error {
+	for i := range h.hooks {
+		if err := h.hooks[i](entry); err != nil {
+			return nil
+		}
+	}
+
+	return nil
+}
+func (h *LogrusHook) Levels() []logrus.Level { return h.levels }
+func (h *LogrusHook) AddHook(hooks ...func(*logrus.Entry) error) {
+	h.hooks = hooks
+}
